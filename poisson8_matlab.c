@@ -1066,6 +1066,8 @@ mxWrapReturnZDef_single   (mxWrapReturn_single_dcomplex, dcomplex,
 #define MWF77_fmmstart8_wrap FMMSTART8_WRAP
 #elif defined(MWF77_UNDERSCORE1)
 #define MWF77_fmmstart8_wrap fmmstart8_wrap_
+#elif defined(MWF77_UNDERSCORE0)
+#define MWF77_fmmstart8_wrap fmmstart8_wrap
 #else /* f2c convention */
 #define MWF77_fmmstart8_wrap fmmstart8_wrap__
 #endif
@@ -1078,16 +1080,16 @@ extern "C" { /* Prevent C++ name mangling */
 #define MWF77_RETURN int
 #endif
 
-MWF77_RETURN MWF77_fmmstart8_wrap(int*, int*, int*, int*, int*, int*, int*, int*, int*, int*, double*, double*, int*);
+MWF77_RETURN MWF77_fmmstart8_wrap(int*, int*, int*, int*, int*, int*, int*, int*, int*, int*, double*, int*, double*, int*);
 
 #ifdef __cplusplus
 } /* end extern C */
 #endif
 
-/* ---- poisson8_matlab.mw: 70 ----
- * fmmstart8_wrap(int[1] nlev, int[nboxes] levelbox, int[nboxes] iparentbox, int[4, nboxes] ichildbox, int[nboxes] icolbox, int[nboxes] irowbox, int[1] nboxes, int[nlevp1] nblevel, int[nboxes] iboxlev, int[nlevp1] istartlev, double[nd, nboxes] f, inout double[nd, nboxes] pot, int[1] iprec);
+/* ---- poisson8_matlab.mw: 71 ----
+ * fmmstart8_wrap(int[1] nlev, int[nboxes] levelbox, int[nboxes] iparentbox, int[4, nboxes] ichildbox, int[nboxes] icolbox, int[nboxes] irowbox, int[1] nboxes, int[nlevp1] nblevel, int[nboxes] iboxlev, int[nlevp1] istartlev, double[nd, nboxes] f, int[1] ifnear, inout double[nd, nboxes] pot, int[1] iprec);
  */
-static const char* stubids1_ = "fmmstart8_wrap(i int[x], i int[x], i int[x], i int[xx], i int[x], i int[x], i int[x], i int[x], i int[x], i int[x], i double[xx], io double[xx], i int[x])";
+static const char* stubids1_ = "fmmstart8_wrap(i int[x], i int[x], i int[x], i int[xx], i int[x], i int[x], i int[x], i int[x], i int[x], i int[x], i double[xx], i int[x], io double[xx], i int[x])";
 
 void mexStub1(int nlhs, mxArray* plhs[],
               int nrhs, const mxArray* prhs[])
@@ -1104,26 +1106,27 @@ void mexStub1(int nlhs, mxArray* plhs[],
     int*        in8_ =0; /* iboxlev    */
     int*        in9_ =0; /* istartlev  */
     double*     in10_ =0; /* f          */
-    double*     in11_ =0; /* pot        */
-    int*        in12_ =0; /* iprec      */
-    mwSize      dim13_;   /* 1          */
-    mwSize      dim14_;   /* nboxes     */
+    int*        in11_ =0; /* ifnear     */
+    double*     in12_ =0; /* pot        */
+    int*        in13_ =0; /* iprec      */
+    mwSize      dim14_;   /* 1          */
     mwSize      dim15_;   /* nboxes     */
-    mwSize      dim16_;   /* 4          */
-    mwSize      dim17_;   /* nboxes     */
+    mwSize      dim16_;   /* nboxes     */
+    mwSize      dim17_;   /* 4          */
     mwSize      dim18_;   /* nboxes     */
     mwSize      dim19_;   /* nboxes     */
-    mwSize      dim20_;   /* 1          */
-    mwSize      dim21_;   /* nlevp1     */
-    mwSize      dim22_;   /* nboxes     */
-    mwSize      dim23_;   /* nlevp1     */
-    mwSize      dim24_;   /* nd         */
-    mwSize      dim25_;   /* nboxes     */
-    mwSize      dim26_;   /* nd         */
-    mwSize      dim27_;   /* nboxes     */
-    mwSize      dim28_;   /* 1          */
+    mwSize      dim20_;   /* nboxes     */
+    mwSize      dim21_;   /* 1          */
+    mwSize      dim22_;   /* nlevp1     */
+    mwSize      dim23_;   /* nboxes     */
+    mwSize      dim24_;   /* nlevp1     */
+    mwSize      dim25_;   /* nd         */
+    mwSize      dim26_;   /* nboxes     */
+    mwSize      dim27_;   /* 1          */
+    mwSize      dim28_;   /* nd         */
+    mwSize      dim29_;   /* nboxes     */
+    mwSize      dim30_;   /* 1          */
 
-    dim13_ = (mwSize) mxWrapGetScalar(prhs[13], &mw_err_txt_);
     dim14_ = (mwSize) mxWrapGetScalar(prhs[14], &mw_err_txt_);
     dim15_ = (mwSize) mxWrapGetScalar(prhs[15], &mw_err_txt_);
     dim16_ = (mwSize) mxWrapGetScalar(prhs[16], &mw_err_txt_);
@@ -1139,62 +1142,68 @@ void mexStub1(int nlhs, mxArray* plhs[],
     dim26_ = (mwSize) mxWrapGetScalar(prhs[26], &mw_err_txt_);
     dim27_ = (mwSize) mxWrapGetScalar(prhs[27], &mw_err_txt_);
     dim28_ = (mwSize) mxWrapGetScalar(prhs[28], &mw_err_txt_);
+    dim29_ = (mwSize) mxWrapGetScalar(prhs[29], &mw_err_txt_);
+    dim30_ = (mwSize) mxWrapGetScalar(prhs[30], &mw_err_txt_);
 
-    if (mxGetM(prhs[0])*mxGetN(prhs[0]) != dim13_) {
+    if (mxGetM(prhs[0])*mxGetN(prhs[0]) != dim14_) {
         mw_err_txt_ = "Bad argument size: nlev";        goto mw_err_label;
     }
 
-    if (mxGetM(prhs[1])*mxGetN(prhs[1]) != dim14_) {
+    if (mxGetM(prhs[1])*mxGetN(prhs[1]) != dim15_) {
         mw_err_txt_ = "Bad argument size: levelbox";        goto mw_err_label;
     }
 
-    if (mxGetM(prhs[2])*mxGetN(prhs[2]) != dim15_) {
+    if (mxGetM(prhs[2])*mxGetN(prhs[2]) != dim16_) {
         mw_err_txt_ = "Bad argument size: iparentbox";        goto mw_err_label;
     }
 
-    if (mxGetM(prhs[3]) != dim16_ ||
-        mxGetN(prhs[3]) != dim17_) {
+    if (mxGetM(prhs[3]) != dim17_ ||
+        mxGetN(prhs[3]) != dim18_) {
         mw_err_txt_ = "Bad argument size: ichildbox";
         goto mw_err_label;
     }
 
-    if (mxGetM(prhs[4])*mxGetN(prhs[4]) != dim18_) {
+    if (mxGetM(prhs[4])*mxGetN(prhs[4]) != dim19_) {
         mw_err_txt_ = "Bad argument size: icolbox";        goto mw_err_label;
     }
 
-    if (mxGetM(prhs[5])*mxGetN(prhs[5]) != dim19_) {
+    if (mxGetM(prhs[5])*mxGetN(prhs[5]) != dim20_) {
         mw_err_txt_ = "Bad argument size: irowbox";        goto mw_err_label;
     }
 
-    if (mxGetM(prhs[6])*mxGetN(prhs[6]) != dim20_) {
+    if (mxGetM(prhs[6])*mxGetN(prhs[6]) != dim21_) {
         mw_err_txt_ = "Bad argument size: nboxes";        goto mw_err_label;
     }
 
-    if (mxGetM(prhs[7])*mxGetN(prhs[7]) != dim21_) {
+    if (mxGetM(prhs[7])*mxGetN(prhs[7]) != dim22_) {
         mw_err_txt_ = "Bad argument size: nblevel";        goto mw_err_label;
     }
 
-    if (mxGetM(prhs[8])*mxGetN(prhs[8]) != dim22_) {
+    if (mxGetM(prhs[8])*mxGetN(prhs[8]) != dim23_) {
         mw_err_txt_ = "Bad argument size: iboxlev";        goto mw_err_label;
     }
 
-    if (mxGetM(prhs[9])*mxGetN(prhs[9]) != dim23_) {
+    if (mxGetM(prhs[9])*mxGetN(prhs[9]) != dim24_) {
         mw_err_txt_ = "Bad argument size: istartlev";        goto mw_err_label;
     }
 
-    if (mxGetM(prhs[10]) != dim24_ ||
-        mxGetN(prhs[10]) != dim25_) {
+    if (mxGetM(prhs[10]) != dim25_ ||
+        mxGetN(prhs[10]) != dim26_) {
         mw_err_txt_ = "Bad argument size: f";
         goto mw_err_label;
     }
 
-    if (mxGetM(prhs[11]) != dim26_ ||
-        mxGetN(prhs[11]) != dim27_) {
+    if (mxGetM(prhs[11])*mxGetN(prhs[11]) != dim27_) {
+        mw_err_txt_ = "Bad argument size: ifnear";        goto mw_err_label;
+    }
+
+    if (mxGetM(prhs[12]) != dim28_ ||
+        mxGetN(prhs[12]) != dim29_) {
         mw_err_txt_ = "Bad argument size: pot";
         goto mw_err_label;
     }
 
-    if (mxGetM(prhs[12])*mxGetN(prhs[12]) != dim28_) {
+    if (mxGetM(prhs[13])*mxGetN(prhs[13]) != dim30_) {
         mw_err_txt_ = "Bad argument size: iprec";        goto mw_err_label;
     }
 
@@ -1270,22 +1279,28 @@ void mexStub1(int nlhs, mxArray* plhs[],
     } else
         in10_ = NULL;
     if (mxGetM(prhs[11])*mxGetN(prhs[11]) != 0) {
-        in11_ = mxWrapGetArray_double(prhs[11], &mw_err_txt_);
+        in11_ = mxWrapGetArray_int(prhs[11], &mw_err_txt_);
         if (mw_err_txt_)
             goto mw_err_label;
     } else
         in11_ = NULL;
     if (mxGetM(prhs[12])*mxGetN(prhs[12]) != 0) {
-        in12_ = mxWrapGetArray_int(prhs[12], &mw_err_txt_);
+        in12_ = mxWrapGetArray_double(prhs[12], &mw_err_txt_);
         if (mw_err_txt_)
             goto mw_err_label;
     } else
         in12_ = NULL;
+    if (mxGetM(prhs[13])*mxGetN(prhs[13]) != 0) {
+        in13_ = mxWrapGetArray_int(prhs[13], &mw_err_txt_);
+        if (mw_err_txt_)
+            goto mw_err_label;
+    } else
+        in13_ = NULL;
     if (mexprofrecord_)
         mexprofrecord_[1]++;
-    MWF77_fmmstart8_wrap(in0_, in1_, in2_, in3_, in4_, in5_, in6_, in7_, in8_, in9_, in10_, in11_, in12_);
-    plhs[0] = mxCreateDoubleMatrix(dim26_, dim27_, mxREAL);
-    mxWrapCopy_double(plhs[0], in11_, dim26_*dim27_);
+    MWF77_fmmstart8_wrap(in0_, in1_, in2_, in3_, in4_, in5_, in6_, in7_, in8_, in9_, in10_, in11_, in12_, in13_);
+    plhs[0] = mxCreateDoubleMatrix(dim28_, dim29_, mxREAL);
+    mxWrapCopy_double(plhs[0], in12_, dim28_*dim29_);
 
 mw_err_label:
     if (in0_)  mxFree(in0_);
@@ -1300,6 +1315,7 @@ mw_err_label:
     if (in9_)  mxFree(in9_);
     if (in11_)  mxFree(in11_);
     if (in12_)  mxFree(in12_);
+    if (in13_)  mxFree(in13_);
     if (mw_err_txt_)
         mexErrMsgTxt(mw_err_txt_);
 }
@@ -1334,7 +1350,7 @@ void mexFunction(int nlhs, mxArray* plhs[],
     } else if (strcmp(id, "*profile report*") == 0) {
         if (!mexprofrecord_)
             mexPrintf("Profiler inactive\n");
-        mexPrintf("%d calls to poisson8_matlab.mw:70\n", mexprofrecord_[1]);
+        mexPrintf("%d calls to poisson8_matlab.mw:71\n", mexprofrecord_[1]);
     } else if (strcmp(id, "*profile log*") == 0) {
         FILE* logfp;
         if (nrhs != 2 || mxGetString(prhs[1], id, sizeof(id)) != 0)
@@ -1344,7 +1360,7 @@ void mexFunction(int nlhs, mxArray* plhs[],
             mexErrMsgTxt("Cannot open log for output");
         if (!mexprofrecord_)
             fprintf(logfp, "Profiler inactive\n");
-        fprintf(logfp, "%d calls to poisson8_matlab.mw:70\n", mexprofrecord_[1]);
+        fprintf(logfp, "%d calls to poisson8_matlab.mw:71\n", mexprofrecord_[1]);
         fclose(logfp);
     } else
         mexErrMsgTxt("Unknown identifier");

@@ -36,7 +36,7 @@ C----------------------------------------------------------------------
       PARAMETER(MAXLEVEL=15)
       INTEGER  NLEV
       INTEGER  NINBOX, NBOXES, IBOX, JCNTR
-      INTEGER  I, J, L
+      INTEGER  I, J, L,ifnear
       INTEGER  IPREC, IPERIODTEMP, IPERIOD
       INTEGER  LEVELBOX(MAXBOXES), IPARENTBOX(MAXBOXES)
       INTEGER  ICHILDBOX(4,MAXBOXES), ICOLLEAGBOX(9,MAXBOXES)
@@ -244,10 +244,10 @@ C     contains the bulk of the algorithm.
       WRITE(*,*)'Doing FMM'
       TIME0 = SECOND()
 
-
+      ifnear = 1
       CALL FMMSTART8_WRAP(NLEV,LEVELBOX,IPARENTBOX,ICHILDBOX,
      1   ICOLBOX,IROWBOX,NBOXES,NBLEVEL,IBOXLEV,ISTARTLEV,
-     2   FRIGHT,POT,IPREC)
+     2   FRIGHT,ifnear,POT,IPREC)
 
 c      CALL FMMSTART8(WORK,MAXWRK,IWORK,IWRK,
 c     1   NLEV,LEVELBOX,IPARENTBOX,ICHILDBOX,
@@ -734,10 +734,13 @@ C     Output the laplacian:
       END
 
 
-
+c
+c
+c
+c
       SUBROUTINE FMMSTART8_WRAP(NLEV,LEVELBOX,IPARENTBOX,ICHILDBOX,
      1   ICOLBOX,IROWBOX,NBOXES,NBLEVEL,IBOXLEV,ISTARTLEV,
-     2   FRIGHT,POT,IPREC)
+     2   FRIGHT,ifnear,POT,IPREC)
       implicit real *8 (a-h,o-z)
       INTEGER NLEV,NBOXES
       INTEGER LEVELBOX(NBOXES)
@@ -771,7 +774,7 @@ C     Output the laplacian:
       CALL FMMSTART8(WORK,MAXWRK,IWORK,IWRK,
      1   NLEV,LEVELBOX,IPARENTBOX,ICHILDBOX,
      2   ICOLBOX,IROWBOX,NBOXES,NBLEVEL,IBOXLEV,
-     3   ISTARTLEV,IPERIOD,FRIGHT,POT,IPREC,MAPS,
+     3   ISTARTLEV,IPERIOD,FRIGHT,ifnear,POT,IPREC,MAPS,
      4   HLEFT,HRIGHT,HBOTTOM,HTOP)
       RETURN
       END
@@ -3195,14 +3198,14 @@ C***********************************************************************
       SUBROUTINE FMMSTART8(WORK, LENW, IWORK, ILEN,
      1     NLEV, LEVELBOX, IPARENTBOX, ICHILDBOX,
      2     ICOLBOX, IROWBOX, NBOXES, NBLEVEL, IBOXLEV,
-     3     ISTARTLEV, IPERIOD, FRIGHT, POT, IPREC, MAP,
+     3     ISTARTLEV, IPERIOD, FRIGHT, ifnear,POT, IPREC, MAP,
      4     HL, HR, HB, HT)
       IMPLICIT NONE
 C-----Global variables
       INTEGER  LENW, ILEN
       INTEGER  NLEV, IPERIOD
       INTEGER  NNODES, NDEG
-      INTEGER  NTERMS, NBOXES
+      INTEGER  NTERMS, NBOXES,ifnear
       INTEGER  LEVELBOX(1), IPARENTBOX(1)
       INTEGER  ICHILDBOX(4,1)
       INTEGER  IROWBOX(1), ICOLBOX(1)
@@ -3627,7 +3630,7 @@ C
      8     FRIGHT,MAP(MMAPNORTH), MAP(MMAPSOUTH), MAP(MMAPEAST),
      9     MAP(MMAPWEST), MAP(MWINT),IWORK(MFLAGEAST),
      1     IWORK(MFLAGNORTH),IWORK(MFLAGWEST),IWORK(MFLAGSOUTH),
-     2     IWORK(MLOCALONOFF))
+     2     IWORK(MLOCALONOFF),ifnear)
 
 
 
@@ -3676,7 +3679,7 @@ C       call for the ADAPFMM6 subroutine.
      9     MAP(MMAPEAST),  MAP(MMAPWEST), MAP(MWINT),
      1     IWORK(MFLAGEAST), IWORK(MFLAGNORTH),
      2     IWORK(MFLAGWEST), IWORK(MFLAGSOUTH),
-     3     IWORK(MLOCALONOFF))
+     3     IWORK(MLOCALONOFF),ifnear)
 
 
         IF(IPERIOD .EQ. 7 .OR. IPERIOD .EQ. 8 .OR.
@@ -4120,11 +4123,11 @@ C********************************************************************
      7         NBLEVEL,IBOXLEV,ISTARTLEV,IPERIOD,
      8         FRIGHT,MAPNORTH, MAPSOUTH, MAPEAST,
      9         MAPWEST, WINT,IFLAGEAST,IFLAGNORTH,
-     1         IFLAGWEST,IFLAGSOUTH,LOCALONOFF)
+     1         IFLAGWEST,IFLAGSOUTH,LOCALONOFF,ifnear)
       IMPLICIT NONE
 C-----Global variables
       INTEGER  NLEV,NTERMS
-      INTEGER  NDEG
+      INTEGER  NDEG,ifnear
       INTEGER  NNODES, NBOXES
       INTEGER  ICOLBOX(1), IROWBOX(1)
       INTEGER  NBLEVEL(0:1), IBOXLEV(1)
@@ -4638,9 +4641,10 @@ C           NOW LET'S SCAN THE COLLEAGUES
 C               The colleague is childless, so just do the
 C               local interaction as in the uniform case
 C               (just outgoing).
-
-                CALL COLLOC8(POT(1,IOUT),COEFFS(0,0,J),NDEG,
+                if(ifnear.eq.1) then
+                  CALL COLLOC8(POT(1,IOUT),COEFFS(0,0,J),NDEG,
      1                       NB,T,TLOG,W,LOCALONOFF(IOUT))
+                endif
 
 
               ELSEIF(ICHILDBOX(1,IOUT) .GT. 0)THEN
@@ -4671,13 +4675,15 @@ C                 one box is not well separated and 3 are.
                   ICLOSE1 = IC1
 
 C                 First do the local work, small to big
-                  CALL STOBLOC8(POT(1,J),COEFFS(0,0,ICLOSE1),
-     1                       NDEG,1,T,TLOGS,WSTOB,LOCALONOFF(J))
+                  if(ifnear.eq.1) then
+                    CALL STOBLOC8(POT(1,J),COEFFS(0,0,ICLOSE1),
+     1                         NDEG,1,T,TLOGS,WSTOB,LOCALONOFF(J))
  
  
 C                 Next do the local work, big to small
-                  CALL BTOSLOC8(POT(1,ICLOSE1),COEFFS(0,0,J),
-     1                     NDEG,1,T,TLOG,WBTOS,LOCALONOFF(ICLOSE1))
+                    CALL BTOSLOC8(POT(1,ICLOSE1),COEFFS(0,0,J),
+     1                       NDEG,1,T,TLOG,WBTOS,LOCALONOFF(ICLOSE1))
+                  endif
 
 
 C                 Finally do the far work, big to small
@@ -4716,17 +4722,19 @@ C                 two boxes are not well separated and two are.
                   ICLOSE2 = IC1
 
 C                 First do the local work, small to big
-                  CALL STOBLOC8(POT(1,J),COEFFS(0,0,ICLOSE1),
-     1                          NDEG,2,T,TLOGS,WSTOB,LOCALONOFF(J))
-                  CALL STOBLOC8(POT(1,J),COEFFS(0,0,ICLOSE2),
-     1                          NDEG,3,T,TLOGS,WSTOB,LOCALONOFF(J))
+                  if(ifnear.eq.1) then
+                    CALL STOBLOC8(POT(1,J),COEFFS(0,0,ICLOSE1),
+     1                            NDEG,2,T,TLOGS,WSTOB,LOCALONOFF(J))
+                    CALL STOBLOC8(POT(1,J),COEFFS(0,0,ICLOSE2),
+     1                            NDEG,3,T,TLOGS,WSTOB,LOCALONOFF(J))
  
 
 C                 Next do the local work, big to small
-                  CALL BTOSLOC8(POT(1,ICLOSE1),COEFFS(0,0,J),
-     1                        NDEG,2,T,TLOG,WBTOS,LOCALONOFF(ICLOSE1))
-                  CALL BTOSLOC8(POT(1,ICLOSE2),COEFFS(0,0,J),
-     1                        NDEG,3,T,TLOG,WBTOS,LOCALONOFF(ICLOSE2))
+                    CALL BTOSLOC8(POT(1,ICLOSE1),COEFFS(0,0,J),
+     1                          NDEG,2,T,TLOG,WBTOS,LOCALONOFF(ICLOSE1))
+                    CALL BTOSLOC8(POT(1,ICLOSE2),COEFFS(0,0,J),
+     1                          NDEG,3,T,TLOG,WBTOS,LOCALONOFF(ICLOSE2))
+                  endif
  
 
 C                 Finally do the far work, big to small
@@ -4755,14 +4763,15 @@ C                 one box is not well separated and 3 are.
                   IFAR3 = IC1
 
 C                 First do the local work, small to big
-                  CALL STOBLOC8(POT(1,J),COEFFS(0,0,ICLOSE1),
-     1                          NDEG,4,T,TLOGS,WSTOB,LOCALONOFF(J))
+                  if(ifnear.eq.1) then
+                    CALL STOBLOC8(POT(1,J),COEFFS(0,0,ICLOSE1),
+     1                            NDEG,4,T,TLOGS,WSTOB,LOCALONOFF(J))
 
 
 C                 First do the local work, big to small
-                  CALL BTOSLOC8(POT(1,ICLOSE1),COEFFS(0,0,J),
-     1                      NDEG,4,T,TLOG,WBTOS,LOCALONOFF(ICLOSE1))
-
+                    CALL BTOSLOC8(POT(1,ICLOSE1),COEFFS(0,0,J),
+     1                        NDEG,4,T,TLOG,WBTOS,LOCALONOFF(ICLOSE1))
+                  endif
 
 C                 Finally do the far work, big to small
                   SPIN = -IMAG
@@ -4799,17 +4808,19 @@ C                 two boxes are not well separated and two are.
                   IFAR2 = IC3
  
 C                 First do the local work, small to big
-                  CALL STOBLOC8(POT(1,J),COEFFS(0,0,ICLOSE1),
-     1                          NDEG,5,T,TLOGS,WSTOB,LOCALONOFF(J))
-                  CALL STOBLOC8(POT(1,J),COEFFS(0,0,ICLOSE2),
-     1                          NDEG,7,T,TLOGS,WSTOB,LOCALONOFF(J))
+                  if(ifnear.eq.1) then
+                    CALL STOBLOC8(POT(1,J),COEFFS(0,0,ICLOSE1),
+     1                            NDEG,5,T,TLOGS,WSTOB,LOCALONOFF(J))
+                    CALL STOBLOC8(POT(1,J),COEFFS(0,0,ICLOSE2),
+     1                            NDEG,7,T,TLOGS,WSTOB,LOCALONOFF(J))
        
 
 C                 Next do the local work, big to small 
-                  CALL BTOSLOC8(POT(1,ICLOSE1),COEFFS(0,0,J),
+                    CALL BTOSLOC8(POT(1,ICLOSE1),COEFFS(0,0,J),
      1                          NDEG,5,T,TLOG,WBTOS,LOCALONOFF(ICLOSE1))
-                  CALL BTOSLOC8(POT(1,ICLOSE2),COEFFS(0,0,J),
+                    CALL BTOSLOC8(POT(1,ICLOSE2),COEFFS(0,0,J),
      1                          NDEG,7,T,TLOG,WBTOS,LOCALONOFF(ICLOSE2))
+                  endif
  
 
 C                 Finally do the far work, big to small
@@ -4838,18 +4849,20 @@ C                 two boxes are not well separated and two are.
                   ICLOSE2 = IC4
 
 C                 First do the local work, small to big
-                  CALL STOBLOC8(POT(1,J),COEFFS(0,0,ICLOSE1),
+
+                  if(ifnear.eq.1) then
+                    CALL STOBLOC8(POT(1,J),COEFFS(0,0,ICLOSE1),
      1                         NDEG,8,T,TLOGS,WSTOB,LOCALONOFF(J))
-                  CALL STOBLOC8(POT(1,J),COEFFS(0,0,ICLOSE2),
+                    CALL STOBLOC8(POT(1,J),COEFFS(0,0,ICLOSE2),
      1                         NDEG,6,T,TLOGS,WSTOB,LOCALONOFF(J))
  
 
 C                 Next do the local work, big to small
-                  CALL BTOSLOC8(POT(1,ICLOSE1),COEFFS(0,0,J),
+                    CALL BTOSLOC8(POT(1,ICLOSE1),COEFFS(0,0,J),
      1                         NDEG,8,T,TLOG,WBTOS,LOCALONOFF(ICLOSE1))
-                  CALL BTOSLOC8(POT(1,ICLOSE2),COEFFS(0,0,J),
+                    CALL BTOSLOC8(POT(1,ICLOSE2),COEFFS(0,0,J),
      1                         NDEG,6,T,TLOG,WBTOS,LOCALONOFF(ICLOSE2))
- 
+                  endif
 
 C                 Finally do the far work, big to small
                   SPIN = -1.0D0
@@ -4877,15 +4890,16 @@ C                 one box is not well separated and 3 are.
                   IFAR3 = IC1
 
 C                 First do the local work, small to big
-                  CALL STOBLOC8(POT(1,J),COEFFS(0,0,ICLOSE1),
-     1                         NDEG,9,T,TLOGS,WSTOB,LOCALONOFF(J))
+                  if(ifnear.eq.1) then
+                    CALL STOBLOC8(POT(1,J),COEFFS(0,0,ICLOSE1),
+     1                           NDEG,9,T,TLOGS,WSTOB,LOCALONOFF(J))
 
 
 C                 Next do the local work, big to small
-                  CALL BTOSLOC8(POT(1,ICLOSE1),COEFFS(0,0,J),
-     1                         NDEG,9,T,TLOG,WBTOS,LOCALONOFF(ICLOSE1))
- 
-
+                    CALL BTOSLOC8(POT(1,ICLOSE1),COEFFS(0,0,J),
+     1                          NDEG,9,T,TLOG,WBTOS,LOCALONOFF(ICLOSE1))
+                  endif
+       
 C                 Finally do the far work, big to small
                   SPIN = 1.0D0
                   FTARGET1 = (-2.0D0,2.0D0)
@@ -4920,18 +4934,19 @@ C                 two boxes are not well separated and two are.
                   IFAR2 = IC1
 
 C                 First do the local work, small to big
-                  CALL STOBLOC8(POT(1,J),COEFFS(0,0,ICLOSE1),
+                  if(ifnear.eq.1) then
+                    CALL STOBLOC8(POT(1,J),COEFFS(0,0,ICLOSE1),
      1                         NDEG,10,T,TLOGS,WSTOB,LOCALONOFF(J))
-                  CALL STOBLOC8(POT(1,J),COEFFS(0,0,ICLOSE2),
+                    CALL STOBLOC8(POT(1,J),COEFFS(0,0,ICLOSE2),
      1                         NDEG,11,T,TLOGS,WSTOB,LOCALONOFF(J))
 
 
 C                 Next do the local work, big to small
-                  CALL BTOSLOC8(POT(1,ICLOSE1),COEFFS(0,0,J),
+                    CALL BTOSLOC8(POT(1,ICLOSE1),COEFFS(0,0,J),
      1                         NDEG,10,T,TLOG,WBTOS,LOCALONOFF(ICLOSE1))
-                  CALL BTOSLOC8(POT(1,ICLOSE2),COEFFS(0,0,J),
+                    CALL BTOSLOC8(POT(1,ICLOSE2),COEFFS(0,0,J),
      1                         NDEG,11,T,TLOG,WBTOS,LOCALONOFF(ICLOSE2))
-
+                  endif
 
 C                 Finally do the far work, big to small
                   SPIN = IMAG
@@ -4959,14 +4974,15 @@ C                 one box is not well separated and 3 are.
                   IFAR3 = IC2
 
 C                 First do the local work, small to big
-                  CALL STOBLOC8(POT(1,J),COEFFS(0,0,ICLOSE1),
+                  if(ifnear.eq.1) then
+                    CALL STOBLOC8(POT(1,J),COEFFS(0,0,ICLOSE1),
      1                        NDEG,12,T,TLOGS,WSTOB,LOCALONOFF(J))
 
 
 C                 Next do the local work, big to small
-                  CALL BTOSLOC8(POT(1,ICLOSE1),COEFFS(0,0,J), 
+                    CALL BTOSLOC8(POT(1,ICLOSE1),COEFFS(0,0,J), 
      1                      NDEG,12,T,TLOG,WBTOS,LOCALONOFF(ICLOSE1))
- 
+                  endif
 
 C                 Finally do the far work, big to small
                   SPIN = IMAG

@@ -65,9 +65,10 @@ function [pot] = volfmm(t,f,eps)
     iboxlev = t.iboxlev;
     istartlev = t.istartlev;
     nlevp1 = nlev + 1;
+    ifnear = 1;
     nd = 64;
 
-    mex_id_ = 'fmmstart8_wrap(i int[x], i int[x], i int[x], i int[xx], i int[x], i int[x], i int[x], i int[x], i int[x], i int[x], i double[xx], io double[xx], i int[x])';
-[pot] = poisson8_matlab(mex_id_, nlev, levelbox, iparentbox, ichildbox, icolbox, irowbox, nboxes, nblevel, iboxlev, istartlev, f, pot, iprec, 1, nboxes, nboxes, 4, nboxes, nboxes, nboxes, 1, nlevp1, nboxes, nlevp1, nd, nboxes, nd, nboxes, 1);
+    mex_id_ = 'fmmstart8_wrap(i int[x], i int[x], i int[x], i int[xx], i int[x], i int[x], i int[x], i int[x], i int[x], i int[x], i double[xx], i int[x], io double[xx], i int[x])';
+[pot] = poisson8_matlab(mex_id_, nlev, levelbox, iparentbox, ichildbox, icolbox, irowbox, nboxes, nblevel, iboxlev, istartlev, f, ifnear, pot, iprec, 1, nboxes, nboxes, 4, nboxes, nboxes, nboxes, 1, nlevp1, nboxes, nlevp1, nd, nboxes, 1, nd, nboxes, 1);
 
 end

@@ -65,8 +65,9 @@
     iboxlev = t.iboxlev;
     istartlev = t.istartlev;
     nlevp1 = nlev + 1;
+    ifnear = 1;
     nd = 64;
 
-    # FORTRAN fmmstart8_wrap(int[1] nlev, int[nboxes] levelbox, int[nboxes] iparentbox, int[4,nboxes] ichildbox, int[nboxes] icolbox, int[nboxes] irowbox, int[1] nboxes, int[nlevp1] nblevel, int[nboxes] iboxlev, int[nlevp1] istartlev, double[nd,nboxes] f, inout double[nd,nboxes] pot, int[1] iprec);
+    # FORTRAN fmmstart8_wrap(int[1] nlev, int[nboxes] levelbox, int[nboxes] iparentbox, int[4,nboxes] ichildbox, int[nboxes] icolbox, int[nboxes] irowbox, int[1] nboxes, int[nlevp1] nblevel, int[nboxes] iboxlev, int[nlevp1] istartlev, double[nd,nboxes] f, int[1] ifnear, inout double[nd,nboxes] pot, int[1] iprec);
 
 end
