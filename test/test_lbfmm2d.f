@@ -96,7 +96,6 @@ c
 c       convert values to coefs
 c
       
-cccc      npols = norder*(norder+1)*(norder+2)/6
       npols = norder*norder
 
       allocate(pot(nd,npbox,nboxes))
@@ -128,10 +127,6 @@ C$     t2 = omp_get_wtime()
       enddo
       call prinf('nlfbox=*',nlfbox,1)
       call prinf('ntotal=*',nlfbox*npbox,1)
-ccc      d = 0
-ccc      do i = 1,6
-ccc         d = d + timeinfo(i)
-ccc      enddo
       
       call prin2('speed in pps=*',
      1    (npbox*nlfbox+0.0d0)/(t2-t1),1)
@@ -167,7 +162,8 @@ ccc      enddo
       erra = sqrt(erra/ra)
       call prin2('relative l2 error=*',erra,1)
       call prin2('ra=*',ra,1)
-
+      
+      return
       end
 c
 c

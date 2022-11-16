@@ -1,104 +1,180 @@
 
 EXEC = int2
 
-#HOST = osx
-HOST=linux-gfortran
-#HOST=linux-ifort
-#HOST=linux-gfortran-prof
-#HOST=linux-gfortran-openmp
+# Set compiler
+FC=gfortran
 
-ifeq ($(HOST),osx)
-FC = gfortran
-FFLAGS = -O3 -march=native --openmp -funroll-loops -c -w
-FLINK = gfortran -w --openmp -o $(EXEC)
-FEND = -lopenblas ${LDFLAGS}
+# Set compile flags
+FFLAGS=-fPIC -O3 -march=native -funroll-loops -std=legacy -w
+FFLAGS2=-fPIC -std=legacy -w
+
+# extra flags for multithreading
+OMPFLAGS=-fopenmp
+OMPLIBS=-lgomp
+
+# set linking libraries
+LIBS = -lm
+
+# flags for MATLAB MEX compilation..
+MFLAGS=-compatibleArrayDims -DMWF77_UNDERSCORE1 
+MWFLAGS=-c99complex 
+MOMPFLAGS = -D_OPENMP
+
+# location of MATLAB's mex compiler
+MEX=mex
+
+# For experts, location of Mwrap executable
+MWRAP=../../mwrap/mwrap
+MEXLIBS=-lm -lstdc++ -ldl -lgfortran
+
+BC_INSTALL_DIR=$(PREFIX)
+ifeq ($(PREFIX),)
+	BC_INSTALL_DIR = ${HOME}/lib
 endif
 
-ifeq ($(HOST),linux-gfortran)
-FC = gfortran
-FFLAGS = -fPIC -O3 -march=native -funroll-loops -ftree-vectorize -ffast-math -std=legacy -c -w
-#FFLAGS = -fPIC -O3 -march=native -funroll-loops -std=legacy -fcx-limited-range -c -w
-FLINK = gfortran -w -o $(EXEC)
-FEND = -lblas -llapack
-#FEND = -lopenblas -L/usr/local/opt/openblas/lib 
+DYLIBS = $(LIBS)
+
+LIBNAME=libboxcode2dlegacy
+DYNAMICLIB = $(LIBNAME).so
+STATICLIB = $(LIBNAME).a
+LIMPLIB = $(DYNAMICLIB)
+
+LLINKLIB = -lboxcode2dlegacy
+
+
+-include make.inc
+
+ifneq ($(OMP),OFF)
+FFLAGS += $(OMPFLAGS)
+
 endif
 
-ifeq ($(HOST),linux-gfortran-prof)
-FC = gfortran
-FFLAGS = -O3 -march=native -pg -g -funroll-loops -ftree-vectorize -ffast-math -c -w  
-FLINK = gfortran -w -o $(EXEC) -pg
-FEND = -lblas -llapack
-endif
-
-ifeq ($(HOST),linux-gfortran-openmp)
-FC = gfortran
-FFLAGS = -fPIC -O3 -march=native -c --openmp
-FLINK = gfortran -w --openmp -o $(EXEC) 
-FEND = -lopenblas -L/usr/local/opt/openblas/lib 
-endif
-
-ifeq ($(HOST),linux-ifort)
-FC = ifort
-FFLAGS = -O1 -g -c -w -xW -qopenmp 
-FFLAGS = -fast -f77rtl -c
-FLINK = ifort -w -qopenmp -o $(EXEC)
-FLINK = ifort -w -o $(EXEC)
-WITH_SECOND = 0
-endif
+SRC = ./src
+TEST = ./test
 
 
-SRC = .
-FMM3D = ../src
-COMMON = ./common
+OBJECTS = $(SRC)/lbfmm2d.o \
+	$(SRC)/chebrouts.o \
+	$(SRC)/poisson8.o \
+	$(SRC)/tables8.o \
+	$(SRC)/tree_routs4.o \
+	$(SRC)/tree_vol_coeffs_cheb.o \
+	$(SRC)/prini_new.o \
+	$(SRC)/legeexps.o \
+	$(SRC)/chebexps.o \
+	$(SRC)/legetens.o \
+	$(SRC)/chebtens.o \
+	$(SRC)/voltab2d.o \
+
+.PHONY: usage install lib test matlab
+
+default: usage
 
 
-.PHONY: all clean list
-
-SOURCES = lbfmm2d.f \
-	chebrouts.f \
-	tables8.f \
-	tree_routs4.f \
-	tree_vol_coeffs_cheb.f \
-	$(COMMON)/prini_new.f \
-	$(COMMON)/legeexps.f \
-	$(COMMON)/chebexps.f \
-	$(COMMON)/legetens.f \
-	$(COMMON)/chebtens.f \
-	$(COMMON)/voltab2d.f \
-	test_lbfmm2d.f	
-#	test_lbfmm2d_old.f 
-
-ifeq ($(WITH_SECOND),1)
-SOURCES += $(SRC)/second-r8.f
-endif
-
-OBJECTS = $(patsubst %.f,%.o,$(patsubst %.f90,%.o,$(SOURCES)))
+usage:
+	@echo "Makefile for boxcode2d-legacy. Specify what to make:"
+	@echo "  make install - compile and install the main library"
+	@echo "  make install PREFIX=(INSTALL_DIR) - compile and install the main library at custom location given by PREFIX"
+	@echo "  make lib - compile the main library (in lib/ and lib-static/)"
+	@echo "  make test - compile and run validation tests (will take a couple of mins)"
+	@echo "  make matlab - compile matlab interfaces"
+	@echo "  make objclean - removal all object files, preserving lib & MEX"
+	@echo "  make clean - also remove lib, MEX, py, and demo executables"
+	@echo "For faster (multicore) making, append the flag -j"
+	@echo "  'make [task] OMP=OFF' for single-threaded"
 
 #
 # use only the file part of the filename, then manually specify
 # the build location
 #
 
-%.o : %.f
-	$(FC) $(FFLAGS) $< -o $@
+$(SRC)/lbfmm2d.o : $(SRC)/lbfmm2d.f
+	$(FC) -c $(FFLAGS) $(SRC)/lbfmm2d.f -o $(SRC)/lbfmm2d.o
 
-%.o : %.f90
-	$(FC) $(FFLAGS) $< -o $@
+$(SRC)/chebrouts.o : $(SRC)/chebrouts.f
+	$(FC) -c $(FFLAGS) $(SRC)/chebrouts.f -o $(SRC)/chebrouts.o
 
-%.mod : %.f90
-	$(FC) $(FFLAGS) $< 
+$(SRC)/poisson8.o : $(SRC)/poisson8.f
+	$(FC) -c $(FFLAGS) $(SRC)/poisson8.f -o $(SRC)/poisson8.o
 
-all: $(OBJECTS)
-	rm -f $(EXEC)
-	$(FLINK) $(OBJECTS) $(FEND)
-	./$(EXEC) 2 
+$(SRC)/tables8.o : $(SRC)/tables8.f
+	$(FC) -c $(FFLAGS2) $(SRC)/tables8.f -o $(SRC)/tables8.o
 
-clean:
-	rm -f $(OBJECTS)
-	rm -f $(EXEC)
-	rm -f fort*
-	rm -f int*
-	rm -f *~
+$(SRC)/tree_routs4.o : $(SRC)/tree_routs4.f
+	$(FC) -c $(FFLAGS) $(SRC)/tree_routs4.f -o $(SRC)/tree_routs4.o
+
+$(SRC)/tree_vol_coeffs_cheb.o : $(SRC)/tree_vol_coeffs_cheb.f
+	$(FC) -c $(FFLAGS) $(SRC)/tree_vol_coeffs_cheb.f -o $(SRC)/tree_vol_coeffs_cheb.o
+
+$(SRC)/prini_new.o : $(SRC)/prini_new.f
+	$(FC) -c $(FFLAGS) $(SRC)/prini_new.f -o $(SRC)/prini_new.o
+
+$(SRC)/legeexps.o : $(SRC)/legeexps.f
+	$(FC) -c $(FFLAGS) $(SRC)/legeexps.f -o $(SRC)/legeexps.o
+
+$(SRC)/chebexps.o : $(SRC)/chebexps.f
+	$(FC) -c $(FFLAGS) $(SRC)/chebexps.f -o $(SRC)/chebexps.o
+
+$(SRC)/legetens.o : $(SRC)/legetens.f
+	$(FC) -c $(FFLAGS) $(SRC)/legetens.f -o $(SRC)/legetens.o
+
+$(SRC)/chebtens.o : $(SRC)/chebtens.f
+	$(FC) -c $(FFLAGS) $(SRC)/chebtens.f -o $(SRC)/chebtens.o
+
+$(SRC)/voltab.o : $(SRC)/voltab.f
+	$(FC) -c $(FFLAGS) $(SRC)/voltab.f -o $(SRC)/voltab.o
+
+
+
+# build the library...
+lib: $(STATICLIB) $(DYNAMICLIB)
+ifneq ($(OMP),OFF)
+	@echo "$(STATICLIB) and $(DYNAMICLIB) built, multithread versions"
+else
+	@echo "$(STATICLIB) and $(DYNAMICLIB) built, single-threaded versions"
+endif
+
+
+install: $(STATICLIB) $(DYNAMICLIB)
+	echo $(BC_INSTALL_DIR)
+	mkdir -p $(BC_INSTALL_DIR)
+	cp -f lib/$(DYNAMICLIB) $(BC_INSTALL_DIR)/
+	cp -f lib-static/$(STATICLIB) $(BC_INSTALL_DIR)/
+	[ ! -f lib/$(LIMPLIB) ] || cp lib/$(LIMPLIB) $(BC_INSTALL_DIR)/
+	@echo "Make sure to include " $(BC_INSTALL_DIR) " in the appropriate path variable"
+	@echo "    LD_LIBRARY_PATH on Linux"
+	@echo "    PATH on windows"
+	@echo "    DYLD_LIBRARY_PATH on Mac OSX (not needed if default installation directory is used"
+	@echo " "
+	@echo "In order to link against the dynamic library, use -L"$(FMM_INSTALL_DIR) " -lboxcode2dlegacy"
+
+
+$(STATICLIB): $(OBJS) 
+	ar rcs $(STATICLIB) $(OBJS)
+	mv $(STATICLIB) lib-static/
+$(DYNAMICLIB): $(OBJS) 
+	$(FC) -shared -fPIC $(OBJS) -o $(DYNAMICLIB) $(DYLIBS) 
+	mv $(DYNAMICLIB) lib/
+	[ ! -f $(LIMPLIB) ] || mv $(LIMPLIB) lib/
+
+test: $(STATICLIB) test/lbfmm2d test/poisson8
+	cd test; ./runsh.sh
+
+test/lbfmm2d:
+	$(FC) $(FFLAGS) test/test_lbfmm2d.f $(OBJS) -o test/int2-lb $(LIBS) 
+
+test/poisson8:
+	$(FC) $(FFLAGS) test/test_poisson8.f $(OBJS) -o test/int2-p $(LIBS) 
+
+clean: objclean
+	rm -f lib-static/*.a lib/*.so lib/*.dll
+	rm -f matlab/*.mex*
+	rm -f test/fort*
+	rm -f test/int*
+
+objclean:
+	rm -f $(OBJS)
+	rm -f test/*.o
 
 list: $(SOURCES)
 	$(warning Requires:  $^)

@@ -1,4 +1,5 @@
 
+
 C**********************************************************************
       PROGRAM ADAPTIVE
 C**********************************************************************
@@ -36,7 +37,7 @@ C----------------------------------------------------------------------
       PARAMETER(MAXLEVEL=15)
       INTEGER  NLEV
       INTEGER  NINBOX, NBOXES, IBOX, JCNTR
-      INTEGER  I, J, L
+      INTEGER  I, J, L,ifnear
       INTEGER  IPREC, IPERIODTEMP, IPERIOD
       INTEGER  LEVELBOX(MAXBOXES), IPARENTBOX(MAXBOXES)
       INTEGER  ICHILDBOX(4,MAXBOXES), ICOLLEAGBOX(9,MAXBOXES)
@@ -244,10 +245,10 @@ C     contains the bulk of the algorithm.
       WRITE(*,*)'Doing FMM'
       TIME0 = SECOND()
 
-
+      ifnear = 1
       CALL FMMSTART8_WRAP(NLEV,LEVELBOX,IPARENTBOX,ICHILDBOX,
      1   ICOLBOX,IROWBOX,NBOXES,NBLEVEL,IBOXLEV,ISTARTLEV,
-     2   FRIGHT,POT,IPREC)
+     2   FRIGHT,ifnear,POT,IPREC)
 
 c      CALL FMMSTART8(WORK,MAXWRK,IWORK,IWRK,
 c     1   NLEV,LEVELBOX,IPARENTBOX,ICHILDBOX,
@@ -734,6 +735,14 @@ C     Output the laplacian:
       END
 
 
+c
+C**************************************************************************
+C--------------------------------------------------------------------------
+C
+C     Function Module
+C
+C--------------------------------------------------------------------------
+C**************************************************************************
 
 C************************************************************************
 C     The following function is just the right right hand side of
@@ -793,8 +802,7 @@ ccc      H2 = X**7 + Y**7 + X**5 + Y**5 + X - Y + 1.0D0
       END
 
 
-      FUNCTION HEXACT(X,Y)
-c     exact solution to the Poisson equation for the above RHS function
+      FUNCTION HEXACT(X,Y) 
       IMPLICIT NONE
 C-----Global variables
       REAL *8  HEXACT, X, Y
@@ -865,5 +873,4 @@ ccc      HEXACTY = 2.0D0 * PI * DSIN(2.0D0*PI*X) * DCOS(2.0D0*PI*Y)
 
       RETURN
       END
-
 
