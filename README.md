@@ -2,10 +2,10 @@
 This repo contains a basic Fortran and Matlab wrapper for running the 
 8th order box code by Greengard and Ethridge.
 
-To verify successful compilation of the library, run `make test'
+To verify successful compilation of the library, run `make test`
 after copying over the appropriate version of make.inc
 
-To generate the mex file run `make matlab' after copying over the 
+To generate the mex file run `make matlab` after copying over the 
 appropriate version of make.inc
 
 The interface on input requires a level restricted adaptive tree, 
@@ -14,7 +14,7 @@ chebyshev grid at all the leaf boxes.
 
 For more detailed documentation for the input format of the level
 restricted tree checkout either the subroutine lbfmm2d in src/lbfmm2d.f 
-or the matlab file `volfmm8.m' or `volfmm8_legacy.m'
+or the matlab file `volfmm8.m` or `volfmm8_legacy.m`
 
 There are two matlab interfaces, one for the legacy tree format, and
 one for the new tree format
