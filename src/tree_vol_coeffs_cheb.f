@@ -291,7 +291,7 @@ c
           call vol_tree_copy(nd,nbctr,npbox,centers,ilevel,iparent,
      1            nchild,ichild,fvals,centers2,ilevel2,iparent2,nchild2,
      2            ichild2,fvals2)
-          call dcopy(nbctr,rintbs,1,rintbs2,1)
+          call dcopy_f77(nbctr,rintbs,1,rintbs2,1)
 
           deallocate(centers,ilevel,iparent,nchild,ichild,fvals,rintbs)
 
@@ -303,7 +303,7 @@ c
           call vol_tree_copy(nd,nbctr,npbox,centers2,ilevel2,iparent2,
      1            nchild2,ichild2,fvals2,centers,ilevel,iparent,nchild,
      2            ichild,fvals)
-          call dcopy(nbctr,rintbs2,1,rintbs,1)
+          call dcopy_f77(nbctr,rintbs2,1,rintbs,1)
 
           deallocate(centers2,ilevel2,iparent2,nchild2,ichild2,fvals2)
           deallocate(rintbs2)
@@ -349,7 +349,7 @@ c
           call vol_tree_copy(nd,nboxes,npbox,centers,ilevel,iparent,
      1       nchild,ichild,fvals,centers2,ilevel2,iparent2,nchild2,
      2       ichild2,fvals2)
-          call dcopy(nboxes,rintbs,1,rintbs2,1)
+          call dcopy_f77(nboxes,rintbs,1,rintbs2,1)
 
           deallocate(centers,ilevel,iparent,nchild,ichild,fvals,rintbs)
 
@@ -361,7 +361,7 @@ c
           call vol_tree_copy(nd,nboxes,npbox,centers2,ilevel2,iparent2,
      1          nchild2,ichild2,fvals2,centers,ilevel,iparent,nchild,
      2          ichild,fvals)
-          call dcopy(nboxes,rintbs2,1,rintbs,1)
+          call dcopy_f77(nboxes,rintbs2,1,rintbs,1)
 
           deallocate(centers2,ilevel2,iparent2,nchild2,ichild2,fvals2)
           deallocate(rintbs2)
@@ -775,7 +775,7 @@ c
       bsh = bs/2
 
       
-C$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,ibox,nbl,j,jbox,l,xyz)
+C$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,ibox,nbl,j,jbox,l,xy)
       do i = 1,nbloc
         ibox = ifirstbox + i-1
         if(irefinebox(i).eq.1) then
@@ -871,7 +871,7 @@ c
               ftmp(idim,i) = abs(fcoefs(idim,i))
             enddo
           enddo
-          call dgemv('n',nd,n,alpha,ftmp,nd,rmask,1,beta,errtmp,1)
+          call dgemv_f77('n',nd,n,alpha,ftmp,nd,rmask,1,beta,errtmp,1)
         endif
 
 
@@ -881,7 +881,7 @@ c
               ftmp(idim,i) = fcoefs(idim,i)**2
             enddo
           enddo
-          call dgemv('n',nd,n,alpha,ftmp,nd,rmask,1,beta,errtmp,1)
+          call dgemv_f77('n',nd,n,alpha,ftmp,nd,rmask,1,beta,errtmp,1)
 
           do idim=1,nd
             errtmp(idim) = sqrt(errtmp(idim))
@@ -1090,7 +1090,7 @@ c
        integer i,j,nel
 
        nel = nd*npb*nb
-       call dcopy(nel,fvals,1,fvals2,1)
+       call dcopy_f77(nel,fvals,1,fvals2,1)
 
 C$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,j)
        do i=1,nb
@@ -1171,7 +1171,7 @@ c        This is the distance to test if two boxes separated
 c        by two levels are touching
          distest = 1.05d0*(boxsize(ilev-1) + boxsize(ilev-2))/2.0d0
 C$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(ibox,idad,igranddad,i,jbox)         
-C$OMP$ PRIVATE(ict,xdis,ydis,zdis)
+C$OMP$ PRIVATE(ict,xdis,ydis)
          do ibox = laddr(1,ilev),laddr(2,ilev) 
             idad = iparent(ibox)
             igranddad = iparent(idad)
@@ -1220,7 +1220,7 @@ c        This is the distance to test if two boxes separated
 c        by one level are touching
          distest = 1.05d0*(boxsize(ilev) + boxsize(ilev-1))/2.0d0
 C$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(ibox,idad,i,jbox,xdis,ydis)
-C$OMP$PRIVATE(zdis,ict)
+C$OMP$PRIVATE(ict)
          do ibox = laddr(1,ilev),laddr(2,ilev)
             if(iflag(ibox).eq.1.or.iflag(ibox).eq.2) then
                idad = iparent(ibox)
@@ -1660,7 +1660,7 @@ c     Temporary variables
 c     Loop over all boxes at the current level     
 
 C$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(ibox,i,jbox,j,kbox,xdis,ydis)
-C$OMP$PRIVATE(zdis,ict)
+C$OMP$PRIVATE(ict)
       do ibox = laddr(1,curlev),laddr(2,curlev)
          if(iflag(ibox).eq.3) then
             iflag(ibox) = 0

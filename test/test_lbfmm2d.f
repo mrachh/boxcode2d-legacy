@@ -110,10 +110,11 @@ c
 
       type = 'f'
       iperiod = 0
+      ifnear = 1
       call cpu_time(t1) 
 C$     t1 = omp_get_wtime()      
       call lbfmm2d(nd,eps,iperiod,nboxes,nlevels,ltree,
-     1   itree,iptr,norder,npols,type,fvals,centers,boxsize,npbox,
+     1   itree,iptr,norder,npbox,fvals,centers,boxsize,ifnear,
      2   pot,timeinfo)
       call cpu_time(t2) 
 C$     t2 = omp_get_wtime()      

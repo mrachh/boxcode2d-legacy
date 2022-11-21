@@ -1,3 +1,6 @@
 *.o
 int2*
 fort.*
+*.a
+*.so
+*.mex*

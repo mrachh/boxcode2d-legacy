@@ -1,15 +1,13 @@
 
       subroutine lbfmm2d(nd,eps,iperiod,nboxes,nlevels,ltree,itree,iptr,
-     1    norder,npols,ttype,fvals,centers,boxsize,npbox,
-     2    pot,timeinfo)
+     1    norder,npbox,fvals,centers,boxsize,ifnear,pot,timeinfo)
 c
 c     This code computes the solution to the Poisson equation in a box
 c     This is wrapper to Frank's old code with several caveats.
-c     1. nd is always 1 for now; 2. norder can only be 8; 3. iperiod 
-c     is 0 - other boundary conditions have not been translated;
-c     4. the internal flag for eps is iprec that takes values 0-3
+c     1. norder can only be 8
+c     2. iperiod is 0 - other boundary conditions have not been translated;
+c     3. the internal flag for eps is iprec that takes values 0-3
 c        (3,6,9,12 digits of accuracy);
-c     5. boxsize(0) and centers(:,1) are fixed.
 c     
 c     
 c       input
@@ -35,17 +33,14 @@ c           iptr(7) - coll
 c           iptr(8) - ltree
 c         norder - integer
 c           order of expansions for input coefficients array
-c         npols - integer
-c           number of coefficients of expansions of functions
-c           in each of the boxes
-c         ttype - character *1
-c            type of coefs provided, total order ('t') or full order('f')
 c         fvals - double precision (npbox,nboxes)
 c           function tabulated on the Chebyshev tensor grid
 c         centers - double precision (2,nboxes)
 c           xy coordintes of boxes in the tree structure
 c         boxsize - double precision (0:nlevels)
 c           size of boxes at each of the levels
+c         ifnear - integer
+c            flag for deciding whether to include list1 interactions
 c         npbox - integer
 c           number of points per box where potential is to be dumped = (norder**2)
 c
@@ -58,12 +53,14 @@ c
       real *8 eps
       integer nboxes,nlevels,ltree
       integer itree(ltree),iptr(8),norder,ncbox,npbox
-      character *1 ttype
-      real *8 fvals(npbox,nboxes)
-      real *8 pot(npbox,nboxes)
+      real *8 fvals(nd,npbox,nboxes)
+      real *8 pot(nd,npbox,nboxes)
       real *8 centers(2,nboxes)
       real *8 boxsize(0:nlevels)
       real *8 timeinfo(6)
+
+      real *8, allocatable :: fvalstmp(:,:),pottmp(:,:)
+      real *8, allocatable :: centers_use(:,:),boxsize_use(:)
 
       integer, allocatable :: levelbox(:),iparentbox(:),ichildbox(:,:)
       integer, allocatable :: icolbox(:),irowbox(:),nblevel(:)
@@ -73,10 +70,29 @@ c
       allocate(icolbox(nboxes),irowbox(nboxes),nblevel(0:nlevels))
       allocate(iboxlev(nboxes),istartlev(0:nlevels))
 
+      allocate(centers_use(2,nboxes),boxsize_use(0:nlevels))
+c
+c
+c  rescale and recenter boxes
+c
+c
+C$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(ibox)
+      do ibox=1,nboxes
+        centers_use(1,ibox) = (centers(1,ibox)-centers(1,1))/boxsize(0)
+        centers_use(2,ibox) = (centers(2,ibox)-centers(2,1))/boxsize(0)
+      enddo
+C$OMP END PARALLEL DO
+
+      do ilev=0,nlevels
+        boxsize_use(ilev) = boxsize(ilev)/boxsize(0)
+      enddo
+
       call newtree2oldtree(nboxes,nlevels,ltree,itree,iptr,
-     1    centers,boxsize,nlev,levelbox,iparentbox,
+     1    centers_use,boxsize_use,nlev,levelbox,iparentbox,
      2    ichildbox,icolbox,irowbox,nblevel,
      3    iboxlev,istartlev)
+
+      allocate(fvalstmp(npbox,nboxes),pottmp(npbox,nboxes))
 
       if (eps.le.1d-12) then
          iprec=3
@@ -88,11 +104,28 @@ c
          iprec=0
       endif
 
-      ifnear = 1
-      
-      call fmmstart8_wrap(nlev,levelbox,iparentbox,ichildbox,
-     1    icolbox,irowbox,nboxes,nblevel,iboxlev,istartlev,
-     2    fvals,ifnear,pot,iprec)
+
+      do idim=1,nd
+
+C$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(ibox,j)      
+        do ibox=1,nboxes
+          do j=1,npbox
+            fvalstmp(j,ibox) = fvals(idim,j,ibox)
+          enddo
+        enddo
+C$OMP END PARALLEL DO        
+
+        call fmmstart8_wrap(nlev,levelbox,iparentbox,ichildbox,
+     1      icolbox,irowbox,nboxes,nblevel,iboxlev,istartlev,
+     2      fvalstmp,ifnear,pottmp,iprec)
+C$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(ibox,j)      
+        do ibox=1,nboxes
+          do j=1,npbox
+            pot(idim,j,ibox) = pottmp(j,ibox)
+          enddo
+        enddo
+C$OMP END PARALLEL DO        
+      enddo
       
       return
       end

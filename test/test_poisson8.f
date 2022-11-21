@@ -39,34 +39,38 @@ C----------------------------------------------------------------------
       INTEGER  NINBOX, NBOXES, IBOX, JCNTR
       INTEGER  I, J, L,ifnear
       INTEGER  IPREC, IPERIODTEMP, IPERIOD
-      INTEGER  LEVELBOX(MAXBOXES), IPARENTBOX(MAXBOXES)
-      INTEGER  ICHILDBOX(4,MAXBOXES), ICOLLEAGBOX(9,MAXBOXES)
-      INTEGER  ICOLBOX(MAXBOXES), IROWBOX(MAXBOXES)
-      INTEGER  NBLEVEL(0:MAXLEVEL), IBOXLEV(MAXBOXES)
-      INTEGER  ITEMPARRAY(MAXBOXES)
-      INTEGER  ISTARTLEV(0:MAXLEVEL)
-      INTEGER  IFLAG(MAXBOXES)
-      INTEGER  IWORK(MAXWRK)
+      INTEGER, allocatable :: LEVELBOX(:),IPARENTBOX(:)
+      INTEGER, ALLOCATABLE :: ICHILDBOX(:,:),ICOLLEAGBOX(:,:)
+      INTEGER, ALLOCATABLE :: ICOLBOX(:),IROWBOX(:)
+      INTEGER, ALLOCATABLE :: NBLEVEL(:), IBOXLEV(:)
+      INTEGER, ALLOCATABLE :: ITEMPARRAY(:),ISTARTLEV(:)
+      INTEGER, ALLOCATABLE :: IFLAG(:),IWORK(:)
       INTEGER  IFIXFLAG
-      INTEGER  LADDER(0:MAXLEVEL+1)
-      REAL *8  FRIGHT(64,MAXBOXES), POT(64,MAXBOXES)
+
+
+      INTEGER, ALLOCATABLE :: LADDER(:)
+      REAL *8, ALLOCATABLE :: FRIGHT(:,:),POT(:,:)
+      REAL *8, ALLOCATABLE :: MAP(:),TEST(:,:)
+
+
+
       REAL *8  HEXACT, HEXACTX, HEXACTY
-      REAL *8  MAP(LENMAPS)
-      REAL *8  TEST(64,MAXBOXES)
-      REAL *8  POTX(64,MAXBOXES), POTY(64,MAXBOXES)
-      REAL *8  LAP(64,MAXBOXES)
-      REAL *8  XF(64,MAXBOXES), YF(64,MAXBOXES)
-      REAL *8  XFPRACTICAL(81,MAXBOXES), YFPRACTICAL(81,MAXBOXES)
-      REAL *8  POTPRACTICAL(81,MAXBOXES)
-      REAL *8  POTPRACTICALX(81,MAXBOXES), POTPRACTICALY(81,MAXBOXES)
-      REAL *8  WORK(MAXWRK)
+      REAL *8, ALLOCATABLE :: POTX(:,:),POTY(:,:)
+      REAL *8, ALLOCATABLE :: LAP(:,:),XF(:,:),YF(:,:)
+      REAL *8, ALLOCATABLE :: XFPRACTICAL(:,:),YFPRACTICAL(:,:)
+      REAL *8, ALLOCATABLE :: POTPRACTICAL(:,:)
+
+      REAL *8, ALLOCATABLE :: POTPRACTICALX(:,:),POTPRACTICALY(:,:)
+      REAL *8, ALLOCATABLE :: WORK(:)
+     
       REAL *8  ERRR, ERRSCALE
       REAL *8  XMAX, DIFFMAX, DIFF
       REAL *8  ERRRX, ERRSCALEX
       REAL *8  XMAXX, DIFFMAXX, DIFFX
       REAL *8  ERRRY, ERRSCALEY
       REAL *8  XMAXY, DIFFMAXY, DIFFY
-      REAL *8  COEFFSU(0:7,0:7,MAXBOXES)
+
+      REAL *8, ALLOCATABLE :: COEFFSU(:,:,:)
       REAL *8  HH, EPS
       REAL *8  H2, HLEFT, HRIGHT, HBOTTOM, HTOP
       REAL *8  TIME0,TIME1,SECOND
@@ -82,6 +86,36 @@ C-----Open output file:
       OPEN(32,FILE='outputpractical.m')
       OPEN(33,FILE='outputpracticalx.m')
       OPEN(34,FILE='outputpracticaly.m')
+
+
+c
+c
+c  allocate various arrays
+c
+
+      allocate(LEVELBOX(MAXBOXES), IPARENTBOX(MAXBOXES))
+      allocate(ICHILDBOX(4,MAXBOXES), ICOLLEAGBOX(9,MAXBOXES))
+      allocate(ICOLBOX(MAXBOXES), IROWBOX(MAXBOXES))
+      allocate(NBLEVEL(0:MAXLEVEL), IBOXLEV(MAXBOXES))
+      allocate(ITEMPARRAY(MAXBOXES))
+      allocate(ISTARTLEV(0:MAXLEVEL))
+      allocate(IFLAG(MAXBOXES))
+      allocate(IWORK(MAXWRK))
+
+
+      allocate(LADDER(0:MAXLEVEL+1))
+      allocate(FRIGHT(64,MAXBOXES), POT(64,MAXBOXES))
+      allocate(MAP(LENMAPS))
+
+      allocate(TEST(64,MAXBOXES))
+      allocate(POTX(64,MAXBOXES), POTY(64,MAXBOXES))
+      allocate(LAP(64,MAXBOXES))
+      allocate(XF(64,MAXBOXES), YF(64,MAXBOXES))
+      allocate(XFPRACTICAL(81,MAXBOXES), YFPRACTICAL(81,MAXBOXES))
+      allocate(POTPRACTICAL(81,MAXBOXES))
+      allocate(POTPRACTICALX(81,MAXBOXES), POTPRACTICALY(81,MAXBOXES))
+      allocate(WORK(MAXWRK))
+      allocate(COEFFSU(0:7,0:7,MAXBOXES))
 
 C     Set the number of points in the box to 64.
 C     Each box will contain 64 chebyshev points.
@@ -321,7 +355,6 @@ C     for each output point.
        DO I = 0, NLEV
         DO 200 J = ISTARTLEV(I), ISTARTLEV(I) + NBLEVEL(I) - 1
         IBOX = IBOXLEV(J)
-        WRITE(*,*)IBOX
         IF(ICHILDBOX(1,IBOX) .GT. 0)GOTO 200
          DO L = 1, 64
 ccc           CALL MKSUR(XF(L,IBOX),YF(L,IBOX),TEST(L,IBOX))
@@ -394,6 +427,8 @@ C       Now find the L- infinity error:
       WRITE(*,*)'Number of childless boxes = ',NCNTR
       WRITE(*,*)'The L2 error is = ',DSQRT(ERRR)/DSQRT(ERRSCALE)
       WRITE(*,*)'The L infinity error is = ',DIFFMAX/XMAX
+
+      
 
       ELSE
       ERRR  =  0.0D0

@@ -1,4 +1,4 @@
-function [pot] = volfmm(t,f,eps)
+function [pot] = volfmm8_legacy(t,f,eps,opts)
 %  This subroutine calls frank's boxcode to evaluate
 %  the free space convolution against the laplace green's
 %  function
@@ -40,10 +40,17 @@ function [pot] = volfmm(t,f,eps)
 %         enddo
 %
 %         where x(j) are scaled chebyshev nodes on the box
+%    - opts: options structure (optional)
+%         opts.ifnear: flag for determining whether to include list1
+%           interactions or not, default value, ifnear = 1, 
+%           which includes the near interaction
 %
 %           
 %
 %
+    if(nargin == 3)
+        opts = [];
+    end
     iprec = 1;
     if(eps >= 0.5e-3)
         iprec = 1;
@@ -66,6 +73,9 @@ function [pot] = volfmm(t,f,eps)
     istartlev = t.istartlev;
     nlevp1 = nlev + 1;
     ifnear = 1;
+    if(isfield(opts,'ifnear'))
+       ifnear = opts.ifnear;
+    end
     nd = 64;
 
     mex_id_ = 'fmmstart8_wrap(i int[x], i int[x], i int[x], i int[xx], i int[x], i int[x], i int[x], i int[x], i int[x], i int[x], i double[xx], i int[x], io double[xx], i int[x])';

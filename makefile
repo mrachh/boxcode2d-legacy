@@ -46,6 +46,7 @@ LLINKLIB = -lboxcode2dlegacy
 
 ifneq ($(OMP),OFF)
 FFLAGS += $(OMPFLAGS)
+MEXLIBS += $(OMPLIBS)
 
 endif
 
@@ -53,7 +54,7 @@ SRC = ./src
 TEST = ./test
 
 
-OBJECTS = $(SRC)/lbfmm2d.o \
+OBJS = $(SRC)/lbfmm2d.o \
 	$(SRC)/chebrouts.o \
 	$(SRC)/poisson8.o \
 	$(SRC)/tables8.o \
@@ -65,6 +66,7 @@ OBJECTS = $(SRC)/lbfmm2d.o \
 	$(SRC)/legetens.o \
 	$(SRC)/chebtens.o \
 	$(SRC)/voltab2d.o \
+	$(SRC)/lapack_f77.o \
 
 .PHONY: usage install lib test matlab
 
@@ -124,6 +126,9 @@ $(SRC)/chebtens.o : $(SRC)/chebtens.f
 $(SRC)/voltab.o : $(SRC)/voltab.f
 	$(FC) -c $(FFLAGS) $(SRC)/voltab.f -o $(SRC)/voltab.o
 
+$(SRC)/lapack_f77.o : $(SRC)/lapack_f77.f
+	$(FC) -c $(FFLAGS) $(SRC)/lapack_f77.f -o $(SRC)/lapack_f77.o
+
 
 
 # build the library...
@@ -165,6 +170,23 @@ test/lbfmm2d:
 
 test/poisson8:
 	$(FC) $(FFLAGS) test/test_poisson8.f $(OBJS) -o test/int2-p $(LIBS) 
+
+
+# matlab ..
+MWRAPFILE = poisson8_matlab
+GATEWAY = $(MWRAPFILE)
+
+
+matlab:	$(STATICLIB) matlab/$(GATEWAY).c 
+	$(MEX) matlab/$(GATEWAY).c lib-static/$(STATICLIB) $(MFLAGS) \
+	-output matlab/poisson8_matlab $(MEXLIBS) 
+
+
+mex:  $(STATICLIB)
+	cd matlab; $(MWRAP) $(MWFLAGS) -list -mex $(GATEWAY) -mb $(MWRAPFILE).mw;\
+	$(MWRAP) $(MWFLAGS) -mex $(GATEWAY) -c $(GATEWAY).c $(MWRAPFILE).mw;\
+	$(MEX) $(GATEWAY).c ../lib-static/$(STATICLIB) $(MFLAGS) -output $(MWRAPFILE) \
+	$(MEXLIBS); \
 
 clean: objclean
 	rm -f lib-static/*.a lib/*.so lib/*.dll
