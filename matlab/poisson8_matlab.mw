@@ -1,5 +1,5 @@
 
-@function [pot] = volfmm8(t,f,eps,opts)
+@function [pot] = volfmm8(t,fvals,eps,opts)
 %  This subroutine calls frank's boxcode to evaluate
 %  the free space convolution against the laplace green's
 %  function but using the new tree interface
@@ -69,8 +69,9 @@
     norder = 8;
     timeinfo = zeros(6,1);
 
+    pot = zeros(npbox,nboxes);
 
-    # FORTRAN lbfmm2d(int[1] nd, double[1] eps, int[1] nboxes, int[1] nlev, int[1] ltree, int[ltree] itree, int[8] iptr, int[1] norder, int[1] npbox, double [npbox,nboxes] fvals,  double [2,nboxes] centers, double [nlevp1] boxsize, int[1] ifnear, inout double [npbox,nboxes] pot, inout double [6] timeinfo);
+    # FORTRAN lbfmm2d(int[1] nd, double[1] eps, int[1] iperiod,int[1] nboxes, int[1] nlev, int[1] ltree, int[ltree] itree, int[8] iptr, int[1] norder, int[1] npbox, double [npbox,nboxes] fvals,  double [2,nboxes] centers, double [nlevp1] boxsize, int[1] ifnear, inout double [npbox,nboxes] pot, inout double [6] timeinfo);
 
 end
 
