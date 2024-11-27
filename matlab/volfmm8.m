@@ -1,4 +1,4 @@
-function [pot] = volfmm8(t,f,eps,opts)
+function [pot] = volfmm8(t,fvals,eps,opts)
 %  This subroutine calls frank's boxcode to evaluate
 %  the free space convolution against the laplace green's
 %  function but using the new tree interface
@@ -68,9 +68,10 @@ function [pot] = volfmm8(t,f,eps,opts)
     norder = 8;
     timeinfo = zeros(6,1);
 
+    pot = zeros(npbox,nboxes);
 
-    mex_id_ = 'lbfmm2d(i int[x], i double[x], i int[x], i int[x], i int[x], i int[x], i int[x], i int[x], i int[x], i double[xx], i double[xx], i double[x], i int[x], io double[xx], io double[x])';
-[pot, timeinfo] = poisson8_matlab(mex_id_, nd, eps, nboxes, nlev, ltree, itree, iptr, norder, npbox, fvals, centers, boxsize, ifnear, pot, timeinfo, 1, 1, 1, 1, 1, ltree, 8, 1, 1, npbox, nboxes, 2, nboxes, nlevp1, 1, npbox, nboxes, 6);
+    mex_id_ = 'lbfmm2d(i int[x], i double[x], i int[x], i int[x], i int[x], i int[x], i int[x], i int[x], i int[x], i int[x], i double[xx], i double[xx], i double[x], i int[x], io double[xx], io double[x])';
+[pot, timeinfo] = poisson8_matlab(mex_id_, nd, eps, iperiod, nboxes, nlev, ltree, itree, iptr, norder, npbox, fvals, centers, boxsize, ifnear, pot, timeinfo, 1, 1, 1, 1, 1, 1, ltree, 8, 1, 1, npbox, nboxes, 2, nboxes, nlevp1, 1, npbox, nboxes, 6);
 
 end
 
